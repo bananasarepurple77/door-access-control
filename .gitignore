@@ -1,0 +1,7 @@
+.env
+venv/
+door.db
+photos/
+__pycache__/
+*.pyc
+*.log

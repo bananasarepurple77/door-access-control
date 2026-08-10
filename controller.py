@@ -24,6 +24,8 @@ import requests
 from botocore.exceptions import BotoCoreError, ClientError
 from dotenv import load_dotenv
 
+import mqtt_pub
+
 # ---------------------------------------------------------------- config
 BASE = Path("/home/cqlm/door")
 load_dotenv(BASE / ".env")
@@ -104,7 +106,7 @@ def log_event(**kw):
     marks = ", ".join("?" for _ in kw)
     with sqlite3.connect(DB_PATH) as c:
         c.execute(f"INSERT INTO events ({cols}) VALUES ({marks})", tuple(kw.values()))
-
+    mqtt_pub.publish(kw)
 
 # ------------------------------------------------------- hardware layer
 # >>> HARDWARE: replace the three functions below when parts arrive.

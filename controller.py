@@ -195,7 +195,7 @@ def verify_face(enrolment_path, snapshot_bytes):
             resp = rekognition.compare_faces(
                 SourceImage={"Bytes": f.read()},
                 TargetImage={"Bytes": snapshot_bytes},
-                SimilarityThreshold=SIMILARITY_THRESHOLD,
+                SimilarityThreshold=0,
             )
     except ClientError as e:
         code = e.response["Error"]["Code"]
@@ -210,7 +210,9 @@ def verify_face(enrolment_path, snapshot_bytes):
         return False, None, "no face detected in snapshot"
     if best < SIMILARITY_THRESHOLD:
         return False, round(best, 2), "face did not match cardholder"
-    return True, round(best, 2), "verified"    
+    return True, round(best, 2), "verified"
+
+
 
 def save_snapshot(jpeg, card_uid):
     """Persist the frame for the audit trail; returns the filename."""

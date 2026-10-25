@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3
 """
 Door controller — multi-factor access control (RFID + facial verification).
@@ -44,10 +45,10 @@ DB_PATH   = BASE / "door.db"
 PHOTO_DIR = BASE / "photos"
 LOG_PATH  = BASE / "door.log"
 
-# GPIO pins (BCM) — used only when HARDWARE = True
-PIN_LED_GREEN = 17
-PIN_LED_RED   = 27
-PIN_RELAY     = 22
+# Physical BOARD pin numbers
+PIN_LED_GREEN = 11 # GPIO17
+PIN_LED_RED   = 13 # GPIO27
+PIN_RELAY     = 15 # GPIO22
 
 MERAKI_HEADERS = {
     "Authorization": f"Bearer {MERAKI_KEY}",
@@ -130,47 +131,53 @@ def read_card():
 
 
 def set_led(colour):
-    """colour: 'green' | 'red' | 'off'.
-
-    REAL: drive PIN_LED_GREEN / PIN_LED_RED via gpiozero LED objects.
-    """
+    """colour: 'green' | 'red' | 'off'."""
     if not HARDWARE:
         log.info("[stub] LED -> %s", colour)
         return
-    _led_green.value = (colour == "green")   # noqa: F821
-    _led_red.value   = (colour == "red")     # noqa: F821
+
+    GPIO.output(
+        PIN_LED_GREEN,
+        GPIO.HIGH if colour == "green" else GPIO.LOW
+    )
+    GPIO.output(
+        PIN_LED_RED,
+        GPIO.HIGH if colour == "red" else GPIO.LOW
+    )
 
 
 def unlock(seconds=UNLOCK_SECONDS):
-    """Release the maglock for `seconds`, then re-lock.
-
-    NOTE fail-safe wiring: relay NC keeps the magnet energised (locked) at rest,
-    so firing the relay DROPS the magnet and opens the box.
-    REAL: _relay.on() / sleep / _relay.off() with gpiozero OutputDevice.
-    """
+    """Activate relay for `seconds`, then return it to inactive state."""
     if not HARDWARE:
         log.info("[stub] maglock released for %ss, then re-locked", seconds)
         return
-    _relay.on()                              # noqa: F821
-    time.sleep(seconds)
-    _relay.off()                             # noqa: F821
+
+    try:
+        GPIO.output(PIN_RELAY, GPIO.LOW)
+        time.sleep(seconds)
+    finally:
+        GPIO.output(PIN_RELAY, GPIO.HIGH)
 
 
 def setup_hardware():
-    """Instantiate reader/LED/relay objects. Called once at startup."""
+    """Initialise RC522, LEDs and relay with RPi.GPIO."""
     if not HARDWARE:
-        log.info("running in STUB mode — no GPIO access")
+        log.info("running in STUB mode no GPIO access")
         return
-    global _reader, _led_green, _led_red, _relay
-    from gpiozero import LED, OutputDevice
-    from mfrc522 import SimpleMFRC522
-    _reader    = SimpleMFRC522()
-    _led_green = LED(PIN_LED_GREEN)
-    _led_red   = LED(PIN_LED_RED)
-    # active_high=False suits most opto-isolated relay boards set to LOW trigger;
-    # if the board's jumper is on HIGH trigger, use active_high=True.
-    _relay     = OutputDevice(PIN_RELAY, active_high=False, initial_value=False)
 
+    global _reader, GPIO
+
+    import RPi.GPIO as GPIO
+    from mfrc522 import SimpleMFRC522
+
+    GPIO.setwarnings(False)
+    GPIO.setmode(GPIO.BOARD)
+
+    _reader = SimpleMFRC522()
+
+    GPIO.setup(PIN_LED_GREEN, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(PIN_LED_RED, GPIO.OUT, initial=GPIO.LOW)
+    GPIO.setup(PIN_RELAY, GPIO.OUT, initial=GPIO.HIGH)
 
 # --------------------------------------------------------- camera + AWS
 def get_snapshot():
@@ -311,18 +318,32 @@ def main():
     db_init()
     setup_hardware()
     set_led("off")
-    log.info("door controller ready (threshold %s%%, hardware=%s)",
-             SIMILARITY_THRESHOLD, HARDWARE)
+
+    log.info(
+        "door controller ready (threshold %s%%, hardware=%s)",
+        SIMILARITY_THRESHOLD,
+        HARDWARE,
+    )
+
     try:
         while True:
             uid = read_card()
+
             if not uid or uid.lower() == "q":
                 break
+
             handle_tap(uid)
+
     except KeyboardInterrupt:
         pass
+
     finally:
         set_led("off")
+
+        if HARDWARE:
+            GPIO.output(PIN_RELAY, GPIO.HIGH)
+            GPIO.cleanup()
+
         log.info("controller stopped")
 
 

@@ -30,7 +30,7 @@ import mqtt_pub
 BASE = Path("/home/cqlm/door")
 load_dotenv(BASE / ".env")
 
-HARDWARE = False              # flip to True once RC522 / LED / relay are wired
+HARDWARE = True              # flip to True once RC522 / LED / relay are wired
 
 MERAKI_KEY    = os.environ["MERAKI_API_KEY"]
 MERAKI_SERIAL = os.environ["MERAKI_SERIAL"]

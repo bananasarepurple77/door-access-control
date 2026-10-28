@@ -147,16 +147,16 @@ def set_led(colour):
 
 
 def unlock(seconds=UNLOCK_SECONDS):
-    """Activate relay for `seconds`, then return it to inactive state."""
+    """Activate the HIGH-trigger relay, then return it to inactive."""
     if not HARDWARE:
-        log.info("[stub] maglock released for %ss, then re-locked", seconds)
+        log.info("[stub] relay activated for %ss, then deactivated", seconds)
         return
 
     try:
-        GPIO.output(PIN_RELAY, GPIO.LOW)
+        GPIO.output(PIN_RELAY, GPIO.HIGH)  # Activate: selector is on H
         time.sleep(seconds)
     finally:
-        GPIO.output(PIN_RELAY, GPIO.HIGH)
+        GPIO.output(PIN_RELAY, GPIO.LOW)   # Request inactive state
 
 
 def setup_hardware():
@@ -177,7 +177,8 @@ def setup_hardware():
 
     GPIO.setup(PIN_LED_GREEN, GPIO.OUT, initial=GPIO.LOW)
     GPIO.setup(PIN_LED_RED, GPIO.OUT, initial=GPIO.LOW)
-    GPIO.setup(PIN_RELAY, GPIO.OUT, initial=GPIO.HIGH)
+    # Relay selector is on H: LOW = inactive, HIGH = active.
+    GPIO.setup(PIN_RELAY, GPIO.OUT, initial=GPIO.LOW)
 
 # --------------------------------------------------------- camera + AWS
 def get_snapshot():
@@ -341,7 +342,7 @@ def main():
         set_led("off")
 
         if HARDWARE:
-            GPIO.output(PIN_RELAY, GPIO.HIGH)
+            GPIO.output(PIN_RELAY, GPIO.LOW)
             GPIO.cleanup()
 
         log.info("controller stopped")

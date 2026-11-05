@@ -5,3 +5,53 @@ photos/
 __pycache__/
 *.pyc
 *.log
+
+# Private image outside the photos directory
+/gf.png
+
+# Additional local environment files
+.env.*
+!.env.example
+!.env.*.example
+
+# Dashboard and webhook credentials/settings
+.dashboard-settings.json
+.webhook-settings.json
+.dashboard-settings.json.*
+.webhook-settings.json.*
+
+# Runtime databases and SQLite sidecar files
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Additional virtual environments and generated files
+.venv/
+dashboard-venv/
+.pytest_cache/
+*.log.*
+
+# Credential directories and private key files
+.aws/
+.ssh/
+*.pem
+*.key
+
+# Webhook runtime lock
+.webhook-worker.lock
+
+# Assessor-only synthetic data and environments
+.assessor-demo/
+.assessor-venv/
+.assessor-venv-*/
+.venv-assessor/
+
+# Locally generated archives and submission copies
+*.zip
+*.tar.gz
+
+# Local module lock file
+.webhook-worker.lock

@@ -1,0 +1,5 @@
+# Python 3.9-compatible branches, checked 2026-10-30.
+# Install ONLY in the new dashboard-venv, not the MQTT listener environment.
+Flask>=3.1.3,<3.2
+Werkzeug>=3.1.8,<3.2
+waitress>=3.0.2,<3.1

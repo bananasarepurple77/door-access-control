@@ -1,0 +1,5 @@
+# Computer-only dashboard demonstration and web-route tests.
+# Separate from the Raspberry Pi/controller requirements.txt.
+-r dashboard/requirements-dashboard.txt
+# Supplies IANA time zones on systems (notably Windows) without a system database.
+tzdata>=2025.2

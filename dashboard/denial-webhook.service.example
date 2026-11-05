@@ -1,0 +1,27 @@
+[Unit]
+Description=MFA cabinet denial webhook worker
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+User=cqlm2
+Group=cqlm2
+WorkingDirectory=/home/cqlm2/dashboard
+ExecStart=/usr/bin/python3 /home/cqlm2/dashboard/webhook_worker.py run
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+UMask=0077
+Environment=PYTHONUNBUFFERED=1
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/cqlm2/dashboard
+ReadOnlyPaths=/home/cqlm2/dashboard/events.db /home/cqlm2/dashboard/.webhook-settings.json
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target

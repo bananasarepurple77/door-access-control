@@ -1,0 +1,13 @@
+
+# Assessor-only synthetic data and environments
+.assessor-demo/
+.assessor-venv/
+.assessor-venv-*/
+.venv-assessor/
+
+# Locally generated archives and submission copies
+*.zip
+*.tar.gz
+
+# Local module lock file
+.webhook-worker.lock

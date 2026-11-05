@@ -1,0 +1,9 @@
+# Append these to the repository's existing .gitignore; do not replace it.
+.webhook-settings.json
+.webhook-settings.json.tmp
+.webhook-state.db
+.webhook-state.db-*
+.webhook-worker.lock
+webhook-deliveries*.csv
+webhook-worker*.log
+__pycache__/

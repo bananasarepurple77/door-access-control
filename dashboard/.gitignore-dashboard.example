@@ -1,0 +1,11 @@
+# Merge these rules into your repository's .gitignore; do not overwrite existing rules.
+.dashboard-settings.json
+.dashboard-settings-*.tmp
+dashboard-venv/
+.env
+*.db
+*.db-*
+*.sqlite*
+*.log
+__pycache__/
+*.pyc

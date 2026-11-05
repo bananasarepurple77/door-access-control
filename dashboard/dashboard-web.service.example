@@ -1,0 +1,24 @@
+# OPTIONAL: install only AFTER the foreground dashboard and login have been tested.
+# sudo install -m 644 dashboard-web.service.example /etc/systemd/system/door-dashboard.service
+# sudo systemctl daemon-reload
+# sudo systemctl enable --now door-dashboard.service
+# journalctl -u door-dashboard.service -n 30 --no-pager
+[Unit]
+Description=Read-only cabinet access dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=cqlm2
+Group=cqlm2
+WorkingDirectory=/home/cqlm2/dashboard
+ExecStart=/home/cqlm2/dashboard/dashboard-venv/bin/python -u /home/cqlm2/dashboard/dashboard_app.py
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

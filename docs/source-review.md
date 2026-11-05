@@ -82,3 +82,15 @@ dashboard web-route and webhook-worker test suites in the separate
 This result covers these software test suites. It does not establish
 biometric accuracy, physical lock safety or Windows compatibility.
 It supplements the earlier validation results recorded above.
+
+## Windows validation after SQLite test-cleanup correction — 5 November 2026
+
+The project author reran the tests on Windows after applying explicit
+SQLite connection cleanup in the two affected test files.
+
+All 9 demonstration-helper tests and all 37 dashboard/web tests passed,
+with no skipped tests. The synthetic demonstration was created with four
+records, passed its configuration check and reached server startup.
+
+This log does not yet document manual browser login, live refresh or CSV
+export. The Unix-only webhook-worker suite was not run on native Windows.

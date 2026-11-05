@@ -1,6 +1,9 @@
 """Standard-library tests. Uses ONLY a temporary sample database, not events.db.
 Run: python -m unittest -v test_dashboard.py
 """
+# SQLite's transaction context does not close the connection.
+# Explicit closure is required before Windows can delete temporary databases.
+from contextlib import closing
 import json
 from pathlib import Path
 import sqlite3
@@ -16,7 +19,7 @@ class DashboardTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.db = Path(self.tmp.name) / "sample.db"
         self.zone = ZoneInfo("Australia/Sydney")
-        with sqlite3.connect(self.db) as connection:
+        with closing(sqlite3.connect(self.db)) as connection, connection:
             connection.execute("""CREATE TABLE events (
                 id INTEGER PRIMARY KEY, received_ts TEXT NOT NULL, ts TEXT,
                 card_uid TEXT, name TEXT, decision TEXT, reason TEXT,
@@ -117,7 +120,7 @@ class DashboardTests(unittest.TestCase):
         self.assertNotIn('"snapshot":',data)
 
     def test_unrecognised_record_and_receipt_fallback(self):
-        with sqlite3.connect(self.db) as c:
+        with closing(sqlite3.connect(self.db)) as c, c:
             c.execute("INSERT INTO events (id,received_ts,raw) VALUES (26,?,?)",("2026-10-29T22:00:00+00:00","broken"))
         result=self.read({"decision":"OTHER"})
         self.assertEqual(result["stats"]["other"],1)
@@ -154,7 +157,7 @@ class DashboardTests(unittest.TestCase):
 
     def test_bad_schema(self):
         path=Path(self.tmp.name)/"wrong.db"
-        with sqlite3.connect(path) as c:
+        with closing(sqlite3.connect(path)) as c, c:
             c.execute("CREATE TABLE events (id INTEGER)")
         with self.assertRaises(ValueError):
             app.check_database(path)
@@ -171,7 +174,7 @@ class DashboardTests(unittest.TestCase):
                 app.load_settings(path)
 
     def test_pagination(self):
-        with sqlite3.connect(self.db) as c:
+        with closing(sqlite3.connect(self.db)) as c, c:
             for number in range(26,84):
                 c.execute("INSERT INTO events (id,received_ts,decision,raw) VALUES (?,?,?,?)",(number,"2026-10-29T22:00:00+00:00","DENIED","{}"))
         first=self.read()

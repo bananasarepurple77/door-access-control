@@ -1,4 +1,7 @@
 """Tests for additive synthetic demo; only temporary directories are touched."""
+# SQLite's transaction context does not close the connection.
+# Explicit closure is required before Windows can delete temporary databases.
+from contextlib import closing
 import json
 from pathlib import Path
 import sqlite3
@@ -46,7 +49,7 @@ class AssessorDemoTests(unittest.TestCase):
     def test_add_new_event(self):
         self.create()
         self.assertEqual(demo.add_scenario(self.path, 'mismatch'), 5)
-        with sqlite3.connect(str(self.path / 'events.db')) as c:
+        with closing(sqlite3.connect(str(self.path / 'events.db'))) as c, c:
             row=c.execute('SELECT decision,raw FROM events WHERE id=5').fetchone()
         self.assertEqual(row[0], 'DENIED')
         self.assertTrue(json.loads(row[1])['synthetic'])
@@ -75,7 +78,7 @@ class AssessorDemoTests(unittest.TestCase):
 
     def test_fixture_contains_no_photo_or_real_uid(self):
         self.create()
-        with sqlite3.connect(str(self.path / 'events.db')) as c:
+        with closing(sqlite3.connect(str(self.path / 'events.db'))) as c, c:
             rows=c.execute('SELECT card_uid,snapshot,raw FROM events').fetchall()
         self.assertTrue(all(uid.startswith('DEMO-') and image is None and json.loads(raw)['synthetic'] for uid,image,raw in rows))
 
